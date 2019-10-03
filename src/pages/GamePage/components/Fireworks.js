@@ -3,7 +3,7 @@ import "./Fireworks.css";
 
 const Fireworks = () => {
   return (
-    <div>
+    <div className="fireworks-container">
       <div className="blauw">
         {[...Array(22)].map((i, idx) => (
           <div className="punt" key={idx} />

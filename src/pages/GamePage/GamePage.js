@@ -85,6 +85,8 @@ class GamePage extends Component {
   };
 
   readyForGameStart = () => {
+    if (this.state.gameStatus === Status.STARTING) return;
+    
     this.props.gameService.readyGame(!this.state.isPlayerReady);
     this.setState(prev => ({ isPlayerReady: !prev.isPlayerReady }));
   };

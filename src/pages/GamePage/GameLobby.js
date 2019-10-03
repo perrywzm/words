@@ -5,16 +5,50 @@ import "./GamePage.css";
 import "./GameLobby.css";
 import { TwitterPicker as ColorPicker } from "react-color";
 import Colors from "../../util/colors";
+import Modal from "../../components/Modal";
 
-const GameLobby = ({ gameId, players }) => {
-  const [playerColor, setPlayerColor] = React.useState()
+const GameLobby = ({
+  gameId,
+  isPlayerReady,
+  player,
+  players,
+  onStart,
+  startingCounter,
+  onColorChange
+}) => {
+  React.useEffect(() => {
+    let singlePressCheck = false;
+
+    const handleKeydown = e => {
+      if (e.key === " " && !singlePressCheck) {
+        e.preventDefault();
+        singlePressCheck = true;
+        onStart();
+      }
+    };
+
+    const resetSinglePressCheck = () => (singlePressCheck = false);
+
+    window.addEventListener("keydown", handleKeydown);
+    window.addEventListener("keyup", resetSinglePressCheck);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeydown);
+      window.removeEventListener("keyup", resetSinglePressCheck);
+    };
+  }, []);
+
+  const updatePlayerColor = color => {
+    onColorChange(color.hex);
+  };
+
   return (
     <div className="game-container">
       {renderTitle(gameId)}
       {renderReadyText()}
-      {renderPlayerCard()}
+      {renderPlayerCard(isPlayerReady, player.color, updatePlayerColor)}
       {renderPlayerGrid(players)}
-      {renderSwatchPicker()}
+      {renderStartingModal(startingCounter)}
     </div>
   );
 };
@@ -35,7 +69,7 @@ const renderReadyText = isReady => {
   }
 };
 
-const renderPlayerCard = color => (
+const renderPlayerCard = (isPlayerReady, color, updatePlayerColor) => (
   <div className="user-player-card">
     <div style={{ display: "flex" }}>
       <div onClick={() => console.log("CAR'D")}>
@@ -45,10 +79,12 @@ const renderPlayerCard = color => (
       </div>
       <div className="player-title-card">
         <p className="player-title">Player </p>
-        <p>READY</p>
+        <p style={{ color: isPlayerReady ? "#15ff00" : "transparent" }}>
+          READY
+        </p>
       </div>
     </div>
-    {renderSwatchPicker()}
+    {renderSwatchPicker(updatePlayerColor)}
   </div>
 );
 
@@ -60,14 +96,11 @@ const renderPlayerGrid = players => (
       justifyItems: "center"
     }}
   >
-    {[...Array(10)].map((_, idx) =>
-      // renderPlayerEntry(Colors[idx % Colors.length])
-      renderPlayerEntry(getRandomLightColor(0.2))
-    )}
+    {players.map(p => renderPlayerEntry(p.ready, p.color))}
   </div>
 );
 
-const renderPlayerEntry = color => (
+const renderPlayerEntry = (ready, color) => (
   <div className="player-card">
     <div onClick={() => console.log("CAR'D")}>
       <div className="lobby-car-container">
@@ -76,13 +109,34 @@ const renderPlayerEntry = color => (
     </div>
     <div className="player-title-card">
       <p className="player-title">Player </p>
-      <p>READY</p>
+      <p style={{ color: ready ? "#15ff00" : "transparent" }}>READY</p>
     </div>
   </div>
 );
 
-const renderSwatchPicker = () => (
-  <div style={{display: "flex", alignItems: "center"}}><h3>Color:</h3><ColorPicker className="color-picker" width="100%" triangle="hide" />
-</div>);
+const renderSwatchPicker = onSelectColor => (
+  <div style={{ display: "flex", alignItems: "center" }}>
+    <h3>Color:</h3>
+    <ColorPicker
+      onChangeComplete={onSelectColor}
+      className="color-picker"
+      width="100%"
+      triangle="hide"
+    />
+  </div>
+);
+
+const renderStartingModal = counter => {
+  if (counter === -1) return null;
+
+  console.log(counter);
+
+  return (
+    <Modal show>
+      <p style={{ fontSize: "2em" }}>Game starting in</p>
+      <div style={{ fontSize: "3em", marginBottom: "0.75em" }}>{counter}</div>
+    </Modal>
+  );
+};
 
 export default GameLobby;

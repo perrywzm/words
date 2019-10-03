@@ -4,23 +4,22 @@ import PlayersProgress from "./components/PlayersProgress";
 import Stats from "./components/Stats";
 import TextArea from "./components/TextArea";
 import Spinner from "../../components/Spinner";
-import { withService } from "../../services/GameService";
-import { withRouter } from "react-router-dom";
 import "./GamePage.css";
 
 const textToType = `Tom Olsson was thinking about Raymond Donaldson again. Raymond was a virtuous brute with`; // sticky warts and sloppy ankles. Tom walked over to the window and reflected on his cold surroundings.`; //He had always loved deprived Sludgeside with its grotesque, grated gates. It was a place that encouraged his tendency to feel sparkly. Then he saw something in the distance, or rather someone. It was the a virtuous figure of Raymond Donaldson. Tom gulped. He glanced at his own reflection. He was an intuitive, stingy, tea drinker with pink warts and fragile ankles. His friends saw him as a blushing, bumpy brute. Once, he had even helped a tall chicken cross the road. But not even an intuitive person who had once helped a tall chicken cross the road, was prepared for what Raymond had in store today.`;
 
-class GamePage extends Component {
+const defaultState = {
+  typed: "",
+  leftOver: "",
+  error: false,
+  errorCount: 0,
+  time: -1
+};
+
+class Game extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      hasGameLoaded: false,
-      typed: "",
-      leftOver: "",
-      error: false,
-      errorCount: 0,
-      time: -1,
-    };
+    this.state = { ...defaultState };
     this.autoMeasureInterval = null;
   }
 
@@ -100,8 +99,12 @@ class GamePage extends Component {
     ).toFixed(0);
   };
 
+  resetGameState = () => {
+    this.setState();
+  };
+
   render() {
-    const { typed, leftOver, error, hasGameLoaded } = this.state;
+    const { typed, leftOver, error, gameStatus } = this.state;
 
     const renderGameElement = () => (
       <>
@@ -122,17 +125,25 @@ class GamePage extends Component {
           socketId={this.props.gameService.socketId}
           players={this.props.gameService.gameState.players}
         />
-        {this.state.leftOver.length === 0 ? <Fireworks /> : null}
+        {this.state.typed.length > 0 && this.state.leftOver.length === 0 ? (
+          <Fireworks />
+        ) : null}
       </>
     );
 
     return (
       <div className="game-container">
-        {hasGameLoaded ? renderGameElement() : null}
-        <Spinner show={!hasGameLoaded} />
+        {gameStatus === Status.RUNNING || gameStatus === Status.ENDED
+          ? renderGameElement()
+          : null}
+        <Spinner show={gameStatus === Status.LOADING} />
+        <GameEndingModal
+          show={gameStatus === Status.ENDED}
+          timeLeft={this.state.endingTimeLeft}
+        />
       </div>
     );
   }
 }
 
-export default withRouter(withService(GamePage));
+export default Game;

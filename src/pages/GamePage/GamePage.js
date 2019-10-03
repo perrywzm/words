@@ -4,16 +4,28 @@ import PlayersProgress from "./components/PlayersProgress";
 import Stats from "./components/Stats";
 import TextArea from "./components/TextArea";
 import Spinner from "../../components/Spinner";
+import Modal from "../../components/Modal";
 import { withService } from "../../services/GameService";
 import { withRouter } from "react-router-dom";
 import "./GamePage.css";
 import GameLobby from "./GameLobby";
+import GameEndingModal from "./components/GameEndingModal";
+import { getRandomLightColor } from "../../util/colors";
 
 const Status = {
   LOADING: 0,
   LOBBY: 1,
-  RUNNING: 2,
-  ENDED: 3
+  STARTING: 2,
+  RUNNING: 3,
+  ENDED: 4
+};
+
+const defaultState = {
+  typed: "",
+  leftOver: "",
+  error: false,
+  errorCount: 0,
+  time: -1
 };
 
 /**
@@ -31,7 +43,8 @@ class GamePage extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      hasGameLoaded: false,
+      isPlayerReady: false,
+      // FOR GAME ONLY
       typed: "",
       leftOver: "",
       error: false,
@@ -44,6 +57,11 @@ class GamePage extends Component {
   componentDidMount() {
     this.loadGame();
     console.log("Received this state", this.props.gameService.gameState);
+
+    // Connect client to listen for websocket events
+    this.props.gameService.listenForStart(this.handleGameStart);
+    this.props.gameService.listenForMessages(this.handleGameMsg);
+    this.props.gameService.listenForGameEnd(this.handleGameEnd);
   }
 
   loadGame = async () => {
@@ -61,17 +79,56 @@ class GamePage extends Component {
     this.setState({
       gameStatus
     });
+  };
 
-    this.props.gameService.startGame();
+  readyForGameStart = () => {
+    this.props.gameService.readyGame(!this.state.isPlayerReady);
+    this.setState(prev => ({ isPlayerReady: !prev.isPlayerReady }));
+  };
 
-    this.props.gameService.listenForStart(() => {
-      console.log(123);
-      this.setState({
-        leftOver: this.props.gameService.gameState.text,
-        gameStatus: Status.RUNNING
-      });
+  handleGameStart = () => {
+    this.setState({
+      leftOver: this.props.gameService.gameState.text,
+      gameStatus: Status.STARTING,
+      startingTimeLeft: 3
     });
-    this.props.gameService.listenForMessages(() => this.setState({}));
+
+    this.countdownFromState("startingTimeLeft", () =>
+      this.setState({ gameStatus: Status.RUNNING, isPlayerReady: false })
+    );
+  };
+
+  handleGameMsg = () => {
+    if (!this.props.gameService.gameState.started) {
+      this.setState({ gameStatus: Status.LOBBY });
+      this.resetGameState();
+    } else {
+      this.setState({});
+    }
+  };
+
+  handleGameEnd = () => {
+    this.setState({ gameStatus: Status.ENDED, endingTimeLeft: 5 });
+    this.countdownFromState("endingTimeLeft");
+  };
+
+  countdownFromState = (varName, onFinish = () => {}) => {
+    const countdownCallback = () => {
+      if (this.state[varName] <= 1) {
+        onFinish();
+        return clearInterval(interval);
+      }
+      this.setState(prevState => ({
+        [varName]: prevState[varName] - 1
+      }));
+    };
+
+    const interval = setInterval(countdownCallback, 1000);
+  };
+
+  /* ALL FUNCTIONS BELOW HERE SHOULD BE REFACTORED OUT*/
+  resetGameState = () => {
+    this.setState({ ...this.state, ...defaultState });
   };
 
   resetMeasurer = () => {
@@ -133,13 +190,26 @@ class GamePage extends Component {
     const { typed, leftOver, error, gameStatus } = this.state;
 
     if (
-      (gameStatus === Status.LOBBY || false) &&
+      (gameStatus === Status.LOBBY || gameStatus === Status.STARTING) &&
       this.props.gameService.gameState
     ) {
+      const player = this.props.gameService.gameState.players.filter(
+        p => p.socketId === this.props.gameService.socketId
+      )[0];
+
       return (
         <GameLobby
+          onStart={this.readyForGameStart}
           gameId={this.props.gameService.gameState.id}
-          players={this.props.gameService.gameState.players}
+          onColorChange={this.props.gameService.sendColorChange}
+          startingCounter={
+            gameStatus !== Status.STARTING ? -1 : this.state.startingTimeLeft
+          }
+          player={player}
+          isPlayerReady={this.state.isPlayerReady}
+          players={this.props.gameService.gameState.players.filter(
+            p => p.socketId !== this.props.gameService.socketId
+          )}
         />
       );
     }
@@ -171,8 +241,14 @@ class GamePage extends Component {
 
     return (
       <div className="game-container">
-        {gameStatus === Status.RUNNING ? renderGameElement() : null}
+        {gameStatus === Status.RUNNING || gameStatus === Status.ENDED
+          ? renderGameElement()
+          : null}
         <Spinner show={gameStatus === Status.LOADING} />
+        <GameEndingModal
+          show={gameStatus === Status.ENDED}
+          timeLeft={this.state.endingTimeLeft}
+        />
       </div>
     );
   }

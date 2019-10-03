@@ -26,15 +26,16 @@ class GameService {
     });
   };
 
-  startGame = () => {
+  readyGame = ready => {
     return new Promise((resolve, reject) => {
-      this.socket.emit("start", {});
+      this.socket.emit("ready", { ready });
     });
-  }
+  };
 
   listenForStart = callback => {
     this.socket.on("start", message => {
       console.log("Game started!", message);
+      this.hasGameEnded = false;
       this.gameState = message;
       callback();
     });
@@ -48,8 +49,19 @@ class GameService {
     });
   };
 
+  listenForGameEnd = callback => {
+    this.socket.on("end", message => {
+      this.hasGameEnded = true;
+      callback();
+    });
+  };
+
   sendProgressUpdate = progress => {
     this.socket.emit("update", { progress });
+  };
+
+  sendColorChange = color => {
+    this.socket.emit("changeColor", { color });
   };
 }
 

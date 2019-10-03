@@ -5,7 +5,6 @@ class RegExpUtil {
     return !str.match(nonAlphanumericRegExp);
   }
   static removeNonAlphanumeric(str) {
-    console.log(str.replace(nonAlphanumericRegExp, ""));
     return str.replace(nonAlphanumericRegExp, "");
   }
 }

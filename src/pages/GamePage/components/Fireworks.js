@@ -2,7 +2,6 @@ import React from "react";
 import "./Fireworks.css";
 
 const Fireworks = () => {
-  console.log(123);
   return (
     <div>
       <div className="blauw">

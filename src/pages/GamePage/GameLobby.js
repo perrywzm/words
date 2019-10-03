@@ -72,10 +72,8 @@ const renderReadyText = isReady => {
 const renderPlayerCard = (isPlayerReady, color, updatePlayerColor) => (
   <div className="user-player-card">
     <div style={{ display: "flex" }}>
-      <div onClick={() => console.log("CAR'D")}>
-        <div className="lobby-car-container">
-          <Car color={color} />
-        </div>
+      <div className="lobby-car-container">
+        <Car color={color} />
       </div>
       <div className="player-title-card">
         <p className="player-title">Player </p>
@@ -102,10 +100,8 @@ const renderPlayerGrid = players => (
 
 const renderPlayerEntry = (ready, color) => (
   <div className="player-card">
-    <div onClick={() => console.log("CAR'D")}>
-      <div className="lobby-car-container">
-        <Car color={color} />
-      </div>
+    <div className="lobby-car-container">
+      <Car color={color} />
     </div>
     <div className="player-title-card">
       <p className="player-title">Player </p>
@@ -128,8 +124,6 @@ const renderSwatchPicker = onSelectColor => (
 
 const renderStartingModal = counter => {
   if (counter === -1) return null;
-
-  console.log(counter);
 
   return (
     <Modal show>

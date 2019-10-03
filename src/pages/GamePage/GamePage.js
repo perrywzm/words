@@ -56,7 +56,7 @@ class GamePage extends Component {
 
   componentDidMount() {
     this.loadGame();
-    console.log("Received this state", this.props.gameService.gameState);
+    // console.log("Received this state", this.props.gameService.gameState);
 
     // Connect client to listen for websocket events
     this.props.gameService.listenForStart(this.handleGameStart);

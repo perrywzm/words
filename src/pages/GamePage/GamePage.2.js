@@ -25,7 +25,7 @@ class Game extends Component {
 
   componentDidMount() {
     this.loadGame();
-    console.log("Received this state", this.props.gameService.gameState);
+    // console.log("Received this state", this.props.gameService.gameState);
   }
 
   loadGame = async () => {

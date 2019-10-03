@@ -8,7 +8,7 @@ const ENDPOINT = "localhost:8090";
 
 class GameService {
   constructor() {
-    console.log("WARNING: THIS SHOULD ONLY BE CALLED ONCE");
+    // console.log("WARNING: THIS SHOULD ONLY BE CALLED ONCE");
     this.socket = socketIOClient(ENDPOINT);
     this.gameState = null;
     this.socketId = null;
@@ -18,7 +18,7 @@ class GameService {
     return new Promise((resolve, reject) => {
       this.socket.emit("join", { gameId, username });
       this.socket.on("init", message => {
-        console.log("Received Init Message:", message);
+        // console.log("Received Init Message:", message);
         this.gameState = message;
         this.socketId = message.socketId;
         resolve(message);
@@ -34,7 +34,7 @@ class GameService {
 
   listenForStart = callback => {
     this.socket.on("start", message => {
-      console.log("Game started!", message);
+      // console.log("Game started!", message);
       this.hasGameEnded = false;
       this.gameState = message;
       callback();
@@ -43,7 +43,7 @@ class GameService {
 
   listenForMessages = callback => {
     this.socket.on("message", message => {
-      console.log("Received Update: ", message);
+      // console.log("Received Update: ", message);
       this.gameState = message;
       callback();
     });

@@ -14,7 +14,7 @@ const RollByProgress = props => {
   React.useEffect(() => {
     const _updateWidth = () => {
       setWidth(prevWidth => ref.current.clientWidth - carOffset);
-      console.log(ref.current.clientWidth - carOffset);
+      // console.log(ref.current.clientWidth - carOffset);
     };
     const updateWidth = _.debounce(_updateWidth, 250);
 

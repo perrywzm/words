@@ -1,0 +1,14 @@
+.rollbyprogress-container {
+  display: flex;
+  flex-flow: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 40px 0;
+  height: 60px;
+  position: relative;
+}
+
+.car-container {
+  transition: 0.4s margin-left linear;
+  position: relative;
+}

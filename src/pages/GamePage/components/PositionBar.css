@@ -1,0 +1,23 @@
+.first {
+  background: #ffff0070;
+}
+
+.second {
+  background: #c2c2c270;
+}
+
+.third {
+  background: #bb672b70;
+}
+
+.pos-container {
+  width: 100%;
+  height: 100px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2em;
+}

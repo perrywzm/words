@@ -1,0 +1,66 @@
+/* For CSS ONLY used in GameLobby.js*/
+
+.user-player-card {
+  display: flex;
+  flex-flow: column;
+  width: calc(100% - 4em);
+  margin: 1em;
+  padding: 1em;
+  border-radius: 24px;
+  border: 1px solid #066b5e;
+}
+
+.player-card {
+  display: flex;
+  flex-flow: row;
+  width: calc(100% - 4em);
+  margin: 1em;
+  padding: 1em;
+  border-radius: 24px;
+  border: 1px solid #066b5e;
+}
+
+.player-title-card {
+  flex: 1;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  margin: 0 24px 0 0;
+}
+
+.color-picker {
+  background: transparent !important;  /* Override react-color */
+}
+
+.ready-text {
+  color: #bb672b
+}
+
+.flash {
+  -webkit-animation: flashing-text 1.3s ease-in-out infinite alternate;
+  animation: flashing-text 1.3s ease-in-out infinite alternate;
+}
+
+@-webkit-keyframes flashing-text {
+  from {
+    color: #2e2e2e;
+  }
+  to {
+    color: #fff;
+  }
+}
+
+@keyframes flashing-text {
+  from {
+    color: #2e2e2e;
+  }
+  to {
+    color: #fff;
+  }
+}
+
+.lobby-car-container {
+  position: relative;
+  width: 160px;
+  transform: translate3d(12px, 20px, 0);
+}

@@ -72,13 +72,16 @@ class GamePage extends Component {
       );
     }
 
-    const gameStatus = this.props.gameService.gameState.started
-      ? Status.LOADING
-      : Status.LOBBY;
-
-    this.setState({
-      gameStatus
-    });
+    if (this.props.gameService.gameState.started) {
+      this.setState({
+        gameStatus: Status.RUNNING,
+        leftOver: this.props.gameService.gameState.text
+      });
+    } else {
+      this.setState({
+        gameStatus: Status.LOBBY
+      });
+    }
   };
 
   readyForGameStart = () => {

@@ -46,7 +46,7 @@ const GameLobby = ({
     <div className="game-container">
       {renderTitle(gameId)}
       {renderReadyText()}
-      {renderPlayerCard(isPlayerReady, player.color, updatePlayerColor)}
+      {renderPlayerCard(player.username, isPlayerReady, player.color, updatePlayerColor)}
       {renderPlayerGrid(players)}
       {renderStartingModal(startingCounter)}
     </div>
@@ -69,14 +69,14 @@ const renderReadyText = isReady => {
   }
 };
 
-const renderPlayerCard = (isPlayerReady, color, updatePlayerColor) => (
+const renderPlayerCard = (name, isPlayerReady, color, updatePlayerColor) => (
   <div className="user-player-card">
     <div style={{ display: "flex" }}>
       <div className="lobby-car-container">
         <Car color={color} />
       </div>
       <div className="player-title-card">
-        <p className="player-title">Player </p>
+        <p className="player-title">{name}</p>
         <p style={{ color: isPlayerReady ? "#15ff00" : "transparent" }}>
           READY
         </p>
@@ -94,17 +94,17 @@ const renderPlayerGrid = players => (
       justifyItems: "center"
     }}
   >
-    {players.map(p => renderPlayerEntry(p.ready, p.color))}
+    {players.map(p => renderPlayerEntry(p.username, p.ready, p.color))}
   </div>
 );
 
-const renderPlayerEntry = (ready, color) => (
+const renderPlayerEntry = (name, ready, color) => (
   <div className="player-card">
     <div className="lobby-car-container">
       <Car color={color} />
     </div>
     <div className="player-title-card">
-      <p className="player-title">Player </p>
+      <p className="player-title">{name}</p>
       <p style={{ color: ready ? "#15ff00" : "transparent" }}>READY</p>
     </div>
   </div>

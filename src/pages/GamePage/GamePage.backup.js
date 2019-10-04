@@ -9,7 +9,6 @@ import { withService } from "../../services/GameService";
 import { withRouter } from "react-router-dom";
 import "./GamePage.css";
 import GameLobby from "./GameLobby";
-import Game from "./Game";
 import GameEndingModal from "./components/GameEndingModal";
 import { getRandomLightColor } from "../../util/colors";
 
@@ -19,6 +18,15 @@ const Status = {
   STARTING: 2,
   RUNNING: 3,
   ENDED: 4
+};
+
+const defaultState = {
+  typed: "",
+  leftOver: "",
+  error: false,
+  errorCount: 0,
+  time: -1,
+  finalizedWPM: 0
 };
 
 /**
@@ -37,8 +45,13 @@ class GamePage extends Component {
     super(props);
     this.state = {
       isPlayerReady: false,
+      // FOR GAME ONLY
+      typed: "",
       leftOver: "",
-      willResetGame: false,
+      error: false,
+      errorCount: 0,
+      time: -1,
+      finalizedWPM: 0
     };
     this.autoMeasureInterval = null;
   }
@@ -53,7 +66,6 @@ class GamePage extends Component {
     this.props.gameService.listenForGameEnd(this.handleGameEnd);
   }
 
-  /* GAME SERVICE METHODS */
   loadGame = async () => {
     if (!this.props.gameService.gameState) {
       await this.props.gameService.sendGameRequest(
@@ -95,7 +107,8 @@ class GamePage extends Component {
 
   handleGameMsg = () => {
     if (!this.props.gameService.gameState.started) {
-      this.setState({ gameStatus: Status.LOBBY, willResetGame: true });
+      this.setState({ gameStatus: Status.LOBBY });
+      this.resetGameState();
     } else {
       this.setState({});
     }
@@ -120,25 +133,78 @@ class GamePage extends Component {
     const interval = setInterval(countdownCallback, 1000);
   };
 
-  /* GAME SERVICE UPDATE METHODS FOR THE GAME-RUNNING PAGE */
-  onUpdateType = typedLength => {
-    const leftOver = this.state.leftOver.slice(1);
-    this.setState(prev => ({ leftOver }));
-
-    this.props.gameService.sendProgressUpdate(
-      typedLength / this.props.gameService.gameState.text.length
-    );
-    return leftOver;
+  /* ALL FUNCTIONS BELOW HERE SHOULD BE REFACTORED OUT*/
+  resetGameState = () => {
+    this.setState({ ...this.state, ...defaultState });
   };
 
-  /* CONDITIONAL RENDERING METHODS */
-  renderGameLobby = () => {
-    // Guard condition against unloaded games
-    if (!this.props.gameService.gameState) return;
+  resetMeasurer = () => {
+    clearTimeout(this.autoMeasureInterval);
+    this.autoMeasureInterval = setTimeout(this.measureStats, 2000);
+  };
 
-    const { gameStatus } = this.state;
+  measureStats = () => {
+    // Force re-render to reacquire WPM
+    this.setState({});
+    this.resetMeasurer();
+  };
 
-    if (gameStatus === Status.LOBBY || gameStatus === Status.STARTING) {
+  handleKeyDown = e => {
+    if (e.keyCode === 16 || this.state.leftOver.length === 0) return;
+
+    // Reset automeasurer time
+    this.resetMeasurer();
+
+    if (e.key === this.state.leftOver[0]) {
+      const typed = this.state.typed + e.key;
+      const leftOver = this.state.leftOver.slice(1);
+      this.setState({ typed, leftOver, error: false });
+      this.props.gameService.sendProgressUpdate(
+        this.state.typed.length / this.props.gameService.gameState.text.length
+      );
+
+      // End game
+      if (this.state.leftOver.length === 0) {
+        this.setState({ finalizedWPM: this.getWpm() });
+        clearTimeout(this.autoMeasureInterval);
+      }
+
+      // If initiating the game itself
+      if (this.state.time === -1) {
+        this.setState({ time: new Date().getTime() });
+      }
+    } else {
+      this.setState(prevState => ({
+        error: true,
+        errorCount: prevState.errorCount + 1
+      }));
+    }
+  };
+
+  getWpm = () => {
+    // Prevent recording wpm when zero words are typed
+    if (this.state.typed.split(" ").length === 1) {
+      return "Measuring...";
+    }
+
+    if (this.state.finalizedWPM) {
+      return this.state.finalizedWPM;
+    }
+
+    return (
+      (this.state.typed.split(" ").length /
+        (new Date().getTime() - this.state.time)) *
+      60000
+    ).toFixed(0);
+  };
+
+  render() {
+    const { typed, leftOver, error, gameStatus } = this.state;
+
+    if (
+      (gameStatus === Status.LOBBY || gameStatus === Status.STARTING) &&
+      this.props.gameService.gameState
+    ) {
       const player = this.props.gameService.gameState.players.filter(
         p => p.socketId === this.props.gameService.socketId
       )[0];
@@ -159,35 +225,43 @@ class GamePage extends Component {
         />
       );
     }
-  };
 
-  renderGame = () => {
-    const { gameStatus, leftOver } = this.state;
-    if (!(gameStatus === Status.RUNNING || gameStatus === Status.ENDED)) return;
-
-    return (
-      <Game
-        hasGameEnded={gameStatus === Status.ENDED}
-        endingTimeLeft={this.state.endingTimeLeft}
-        leftOver={leftOver}
-        onUpdateType={this.onUpdateType}
-        playerSocketId={this.props.gameService.socketId}
-        players={this.props.gameService.gameState.players}
-      />
-    );
-  };
-
-  renderSpinningLoader = () => (
-    <Spinner show={this.state.gameStatus === Status.LOADING} />
-  );
-
-  render() {
-    return (
+    const renderGameElement = () => (
       <>
-        {this.renderGameLobby()}
-        {this.renderGame()}
-        {this.renderSpinningLoader()}
+        <div style={{ width: "100%" }}>
+          <Stats
+            showStats={this.state.time !== -1}
+            wpm={this.getWpm()}
+            errorCount={this.state.errorCount}
+          />
+          <TextArea
+            typed={typed}
+            leftOver={leftOver}
+            error={error}
+            handleKeyDown={this.handleKeyDown}
+          />
+        </div>
+        <PlayersProgress
+          socketId={this.props.gameService.socketId}
+          players={this.props.gameService.gameState.players}
+        />
+        {this.state.typed.length > 0 && this.state.leftOver.length === 0 ? (
+          <Fireworks />
+        ) : null}
       </>
+    );
+
+    return (
+      <div className="game-container">
+        {gameStatus === Status.RUNNING || gameStatus === Status.ENDED
+          ? renderGameElement()
+          : null}
+        <Spinner show={gameStatus === Status.LOADING} />
+        <GameEndingModal
+          show={gameStatus === Status.ENDED}
+          timeLeft={this.state.endingTimeLeft}
+        />
+      </div>
     );
   }
 }

@@ -1,6 +1,5 @@
 import React from "react";
 import RollByProgress from "./RollByProgress";
-import Colors from "../../../util/colors";
 
 const PlayersProgress = ({ socketId, players }) => {
   return (

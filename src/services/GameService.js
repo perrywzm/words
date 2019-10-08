@@ -4,7 +4,8 @@ import { sleep } from "../util/timer";
 import socketIOClient from "socket.io-client";
 
 // const ENDPOINT = "http://192.168.137.1:8090";
-const ENDPOINT = "localhost:8090";
+// const ENDPOINT = "localhost:8090";
+const ENDPOINT = "/";
 
 class GameService {
   constructor() {

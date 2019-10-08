@@ -82,7 +82,7 @@ const renderPlayerCard = (name, isPlayerReady, color, updatePlayerColor) => (
         </p>
       </div>
     </div>
-    {renderSwatchPicker(updatePlayerColor)}
+    {renderSwatchPicker(color, updatePlayerColor)}
   </div>
 );
 
@@ -110,10 +110,11 @@ const renderPlayerEntry = (name, ready, color) => (
   </div>
 );
 
-const renderSwatchPicker = onSelectColor => (
+const renderSwatchPicker = (color, onSelectColor) => (
   <div style={{ display: "flex", alignItems: "center" }}>
     <h3>Color:</h3>
     <ColorPicker
+      color={color}
       onChangeComplete={onSelectColor}
       className="color-picker"
       width="100%"

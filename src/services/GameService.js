@@ -35,7 +35,7 @@ class GameService {
 
   listenForStart = callback => {
     this.socket.on("start", message => {
-      // console.log("Game started!", message);
+      console.log("Game started!", message);
       this.hasGameEnded = false;
       this.gameState = message;
       callback();
@@ -44,7 +44,7 @@ class GameService {
 
   listenForMessages = callback => {
     this.socket.on("message", message => {
-      // console.log("Received Update: ", message);
+      console.log("Received Update: ", message);
       this.gameState = message;
       callback();
     });
